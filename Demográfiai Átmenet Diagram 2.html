@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demographic Transition Chart Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .controls {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .btn-secondary {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d4d4d4;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+        }
+
+        .btn-download:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .chart-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        #chartCanvas {
+            max-width: 100%;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .header, .controls, .chart-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Demográfiai Átmenet Diagram Generátor</h1>
+            <p>Töltse fel a születési és halálozási ráta CSV fájlokat a demográfiai átmenet megjelenítéséhez</p>
+        </div>
+
+        <div class="controls">
+            <div id="status"></div>
+
+            <div class="form-group">
+                <label for="countryName">Ország neve</label>
+                <input type="text" id="countryName" placeholder="pl. Magyarország" value="">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthFile">Születési ráta CSV fájl</label>
+                    <input type="file" id="birthFile" accept=".csv" />
+                </div>
+                <div class="form-group">
+                    <label for="deathFile">Halálozási ráta CSV fájl</label>
+                    <input type="file" id="deathFile" accept=".csv" />
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="generateChart()">Diagram generálása</button>
+                <button class="btn-danger" onclick="clearAll()">Mindent töröl</button>
+                <button class="btn-download" id="downloadBtn" onclick="downloadChart()" disabled>Letöltés PNG-ként</button>
+            </div>
+        </div>
+
+        <div class="chart-container" id="chartContainer" style="display: none;">
+            <div class="chart-title" id="chartTitle"></div>
+            <div class="chart-subtitle">Becsült éves születések és halálozások száma 1000 főre vetítve.</div>
+            <div class="chart-wrapper">
+                <canvas id="chartCanvas"></canvas>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Generating chart...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            if (type !== 'error' && type !== 'success') {
+                setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+            }
+        }
+
+        function parseCSV(csvContent) {
+            const lines = csvContent.trim().split('\n');
+            if (lines.length < 2) throw new Error('CSV file is empty or invalid');
+            
+            const headers = lines[0].split(',');
+            const yearIndex = headers.findIndex(h => h.toLowerCase().includes('year'));
+            const valueIndex = headers.length - 1; // Last column has the rate value
+            
+            if (yearIndex === -1) throw new Error('Year column not found');
+            
+            const data = {};
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length > valueIndex) {
+                    const year = parseInt(parts[yearIndex].trim());
+                    const value = parseFloat(parts[valueIndex].trim());
+                    if (!isNaN(year) && !isNaN(value)) {
+                        data[year] = value;
+                    }
+                }
+            }
+            
+            return data;
+        }
+
+        function generateChart() {
+            const countryName = document.getElementById('countryName').value || 'Country';
+            const birthFile = document.getElementById('birthFile').files[0];
+            const deathFile = document.getElementById('deathFile').files[0];
+
+            if (!birthFile || !deathFile) {
+                showStatus('Please select both CSV files', 'error');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            Promise.all([
+                readFile(birthFile),
+                readFile(deathFile)
+            ]).then(([birthContent, deathContent]) => {
+                try {
+                    const birthData = parseCSV(birthContent);
+                    const deathData = parseCSV(deathContent);
+
+                    if (Object.keys(birthData).length === 0 || Object.keys(deathData).length === 0) {
+                        throw new Error('No valid data found in CSV files');
+                    }
+
+                    // Get all years in sorted order
+                    const allYears = Array.from(new Set([
+                        ...Object.keys(birthData).map(Number),
+                        ...Object.keys(deathData).map(Number)
+                    ])).sort((a, b) => a - b);
+
+                    const labels = allYears;
+                    const birthRates = allYears.map(year => birthData[year] || null);
+                    const deathRates = allYears.map(year => deathData[year] || null);
+
+                    // Update chart title
+                    document.getElementById('chartTitle').textContent = countryName;
+
+                    // Create chart
+                    const ctx = document.getElementById('chartCanvas').getContext('2d');
+                    
+                    if (chartInstance) {
+                        chartInstance.destroy();
+                    }
+
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Születési arány',
+                                    data: birthRates,
+                                    borderColor: '#1f77b4',
+                                    backgroundColor: 'rgba(31, 119, 180, 0.05)',
+                                    borderWidth: 2.5,
+                                    fill: false,
+                                    tension: 0.4,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#1f77b4',
+                                    spanGaps: true
+                                },
+                                {
+                                    label: 'Halálozási arány',
+                                    data: deathRates,
+                                    borderColor: '#d62728',
+                                    backgroundColor: 'rgba(214, 39, 40, 0.05)',
+                                    borderWidth: 2.5,
+                                    fill: false,
+                                    tension: 0.4,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#d62728',
+                                    spanGaps: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'bottom',
+                                    align: 'end',
+                                    labels: {
+                                        font: { size: 12, family: "'Segoe UI', Arial, sans-serif" },
+                                        color: '#1a1a1a',
+                                        padding: 15,
+                                        usePointStyle: false,
+                                        boxWidth: 15,
+                                        boxHeight: 2
+                                    }
+                                },
+                                title: {
+                                    display: false
+                                },
+                                filler: {
+                                    propagate: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    title: {
+                                        display: false
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.08)',
+                                        drawBorder: true
+                                    },
+                                    ticks: {
+                                        font: { size: 11 },
+                                        color: '#666',
+                                        maxTicksLimit: 10
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    min: 0,
+                                    title: {
+                                        display: false
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.08)',
+                                        drawBorder: true
+                                    },
+                                    ticks: {
+                                        font: { size: 11 },
+                                        color: '#666',
+                                        callback: function(value) {
+                                            return value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    document.getElementById('chartContainer').style.display = 'block';
+                    document.getElementById('downloadBtn').disabled = false;
+                    showStatus(`A diagram sikeresen létrejött! Adattartomány: ${Math.min(...allYears)} - ${Math.max(...allYears)}`, 'success');
+                    loading.style.display = 'none';
+
+                } catch (error) {
+                    showStatus(`Error: ${error.message}`, 'error');
+                    loading.style.display = 'none';
+                }
+            }).catch(error => {
+                showStatus(`Error reading files: ${error.message}`, 'error');
+                loading.style.display = 'none';
+            });
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
+        }
+
+        function downloadChart() {
+            const canvas = document.getElementById('chartCanvas');
+            const chartContainer = document.getElementById('chartContainer');
+            const countryName = document.getElementById('countryName').value || 'Country';
+            
+            // Create a temporary container for high-res rendering
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = '1400px';
+            tempDiv.style.background = 'white';
+            tempDiv.style.padding = '40px';
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.top = '-9999px';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.style.fontSize = '24px';
+            titleDiv.style.fontWeight = '600';
+            titleDiv.style.marginBottom = '8px';
+            titleDiv.style.fontFamily = "'Segoe UI', Arial, sans-serif";
+            titleDiv.textContent = `Birth rate and death rate, ${countryName}`;
+            
+            const subtitleDiv = document.createElement('div');
+            subtitleDiv.style.fontSize = '13px';
+            subtitleDiv.style.color = '#666';
+            subtitleDiv.style.marginBottom = '30px';
+            subtitleDiv.style.fontFamily = "'Segoe UI', Arial, sans-serif";
+            subtitleDiv.textContent = 'Estimated number of annual births and deaths per 1,000 people.';
+            
+            // Clone canvas
+            const clonedCanvas = canvas.cloneNode();
+            const clonedCtx = clonedCanvas.getContext('2d');
+            const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            clonedCtx.putImageData(imageData, 0, 0);
+            
+            tempDiv.appendChild(titleDiv);
+            tempDiv.appendChild(subtitleDiv);
+            tempDiv.appendChild(clonedCanvas);
+            document.body.appendChild(tempDiv);
+            
+            html2canvas(tempDiv, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(finalCanvas => {
+                document.body.removeChild(tempDiv);
+                
+                const link = document.createElement('a');
+                link.href = finalCanvas.toDataURL('image/png');
+                link.download = `demographic-transition-${countryName.replace(/\s+/g, '-').toLowerCase()}.png`;
+                link.click();
+                
+                showStatus('Chart downloaded successfully!', 'success');
+            }).catch(error => {
+                document.body.removeChild(tempDiv);
+                showStatus(`Download failed: ${error.message}`, 'error');
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('countryName').value = 'Country';
+            document.getElementById('birthFile').value = '';
+            document.getElementById('deathFile').value = '';
+            document.getElementById('chartContainer').style.display = 'none';
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('status').style.display = 'none';
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+        }
+    </script>
+</body>
+</html>
