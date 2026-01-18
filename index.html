@@ -276,7 +276,7 @@
 
         <div class="chart-container" id="chartContainer" style="display: none;">
             <div class="chart-title" id="chartTitle"></div>
-            <div class="chart-subtitle">Becsült éves születések és halálozások száma 1000 főre vetítve.</div>
+            <div class="chart-subtitle">Éves születések és halálozások becsült értéke 1000 főre vetítve.</div>
             <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
             </div>
@@ -512,14 +512,14 @@
             titleDiv.style.fontWeight = '600';
             titleDiv.style.marginBottom = '8px';
             titleDiv.style.fontFamily = "'Segoe UI', Arial, sans-serif";
-            titleDiv.textContent = `Birth rate and death rate, ${countryName}`;
+            titleDiv.textContent = `${countryName}`;
             
             const subtitleDiv = document.createElement('div');
             subtitleDiv.style.fontSize = '13px';
             subtitleDiv.style.color = '#666';
             subtitleDiv.style.marginBottom = '30px';
             subtitleDiv.style.fontFamily = "'Segoe UI', Arial, sans-serif";
-            subtitleDiv.textContent = 'Estimated number of annual births and deaths per 1,000 people.';
+            subtitleDiv.textContent = 'Születések és halálozások becsült száma 1000 főre vetítve.';
             
             // Clone canvas
             const clonedCanvas = canvas.cloneNode();
@@ -544,7 +544,7 @@
                 link.download = `demographic-transition-${countryName.replace(/\s+/g, '-').toLowerCase()}.png`;
                 link.click();
                 
-                showStatus('Chart downloaded successfully!', 'success');
+                showStatus('A diagram letöltése sikerült!', 'success');
             }).catch(error => {
                 document.body.removeChild(tempDiv);
                 showStatus(`Download failed: ${error.message}`, 'error');
